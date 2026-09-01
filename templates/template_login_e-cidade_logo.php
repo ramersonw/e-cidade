@@ -115,8 +115,7 @@
 <div id='box' style="" align="center" >
   <img class='logo-img' src="imagens/ecidade/logo.png"  style="width: 482px; height:100px; margin-bottom: 12px;">
   <img class='logo-img' src="imagens/ecidade/e_cidade_chave_login.png">
-  <img class="logo-img" src="imagens/ecidade/e_cidade_login.jpg" title="Entre na comunidade e-Cidade no Portal do Software Público."
-       onclick="window.open('http://www.contassconsultoria.com.br','_Blank','')"/>
+  <img class="logo-img" src="imagens/ecidade/e_cidade_login.jpg" title="Entre na comunidade e-Cidade no Portal do Software Pï¿½blico."/>
   <img class="logo-img" src="imagens/ecidade/twitter-ico2.png" title="Siga-nos no Twitter" alt="Icone do Twitter"
        style="width: 20px; height:20px; margin-bottom: 12px;" onclick="window.open('http://twitter.com/#!/e_cidade','_Blank','')"/>
 <br/>
@@ -210,7 +209,7 @@
 </tr>
 <tr align="center">
   <td><strong>
-  DBSeller Serviços de Informática Ltda
+  DBSeller Serviï¿½os de Informï¿½tica Ltda
   </strong></td>
 </tr>
 <tr align="center">
@@ -225,7 +224,7 @@
 </tr>
 <tr>
   <td align="right">
-  <img class="logo-img" src="imagens/ecidade/facebook-ico1.png" title="Conheça nossa página no Facebook"
+  <img class="logo-img" src="imagens/ecidade/facebook-ico1.png" title="Conheï¿½a nossa pï¿½gina no Facebook"
        style="width: 20px; height:20px;" onclick="window.open('http://www.facebook.com/?ref=home#!/pages/DBSeller/168429383219644','_Blank','');" />
   <img class="logo-img" src="imagens/ecidade/twitter-ico2.png" title="Siga-nos no Twitter" alt="Icone do Twitter"
        style="width: 20px; height20px; margin-right:16px;" onclick="window.open('http://twitter.com/#!/DBSeller','_Blank','')" />

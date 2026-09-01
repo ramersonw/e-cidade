@@ -19,8 +19,8 @@ $sql = "SELECT l20_codigo,
                                              53,
                                              52,
                                              50) THEN 'Edital'
-           WHEN l03_pctipocompratribunal = 101 THEN 'Aviso de Contratação Direta'
-           WHEN l03_pctipocompratribunal = 100 THEN 'Ato que autoriza a Contratação Direta'
+           WHEN l03_pctipocompratribunal = 101 THEN 'Aviso de Contrataï¿½ï¿½o Direta'
+           WHEN l03_pctipocompratribunal = 100 THEN 'Ato que autoriza a Contrataï¿½ï¿½o Direta'
            WHEN l03_pctipocompratribunal IN (102,
                                              103) THEN '4'
        END AS tipoinstrumentoconvocatorioid,
@@ -31,16 +31,16 @@ $sql = "SELECT l20_codigo,
            WHEN l20_mododisputa = 2 THEN 'Fechado'
            WHEN l20_mododisputa = 3 THEN 'Aberto-Fechado'
            WHEN l20_mododisputa = 4 THEN 'Dispensa Com Disputa'
-           WHEN l20_mododisputa = 5 THEN 'Não se aplica'
+           WHEN l20_mododisputa = 5 THEN 'Nï¿½o se aplica'
            WHEN l20_mododisputa = 6 THEN 'Fechado-Aberto'
        END AS l20_mododisputa,
        CASE
-           WHEN l20_tipliticacao = 1 THEN 'Menor Preço'
+           WHEN l20_tipliticacao = 1 THEN 'Menor Preï¿½o'
            WHEN l20_tipliticacao = 2 THEN 'Maior desconto'
-           WHEN l20_tipliticacao = 4 THEN 'Técnica e preço'
+           WHEN l20_tipliticacao = 4 THEN 'Tï¿½cnica e preï¿½o'
            WHEN l20_tipliticacao = 5 THEN 'Maior lance'
-           WHEN l20_tipliticacao = 6 THEN 'Maior retorno econômico'
-           WHEN l20_tipliticacao = 7 THEN 'Não se aplica'
+           WHEN l20_tipliticacao = 6 THEN 'Maior retorno econï¿½mico'
+           WHEN l20_tipliticacao = 7 THEN 'Nï¿½o se aplica'
        END AS l20_tipliticacao,
        l20_dataaberproposta,
        l20_horaaberturaprop,
@@ -66,7 +66,7 @@ $dataEncerramento = implode('/',array_reverse(explode('-',$oDadosPNCP->l20_datae
 <html>
 
 <head>
-    <title>Contass Consultoria Ltda - P&aacute;gina Inicial</title>
+    <title>Delphos - P&aacute;gina Inicial</title>
     <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
     <meta http-equiv="Expires" CONTENT="0">
     <script language="JavaScript" type="text/javascript" src="scripts/scripts.js"></script>
@@ -93,7 +93,7 @@ $dataEncerramento = implode('/',array_reverse(explode('-',$oDadosPNCP->l20_datae
                     <?= $oDadosPNCP->tipoinstrumentoconvocatorioid ?>
                 </td>
                 <td>
-                    <strong>Usuário:</strong>
+                    <strong>Usuï¿½rio:</strong>
                 </td>
                 <td class="background">
                     <?= $oDadosPNCP->nome ?>
@@ -101,7 +101,7 @@ $dataEncerramento = implode('/',array_reverse(explode('-',$oDadosPNCP->l20_datae
             </tr>
             <tr>
                 <td>
-                    <strong>Id Contratação:</strong>
+                    <strong>Id Contrataï¿½ï¿½o:</strong>
                 </td>
                 <td class="background">
                     <?=$oDadosPNCP->l213_numerocontrolepncp?>
@@ -115,7 +115,7 @@ $dataEncerramento = implode('/',array_reverse(explode('-',$oDadosPNCP->l20_datae
             </tr>
             <tr>
                 <td>
-                    <strong>Data de lançamento:</strong>
+                    <strong>Data de lanï¿½amento:</strong>
                 </td>
                 <td class="background">
                     <?= $oDadosPNCP->l213_dtlancamento ?>
@@ -129,10 +129,10 @@ $dataEncerramento = implode('/',array_reverse(explode('-',$oDadosPNCP->l20_datae
             </tr>
             <tr>
                 <td>
-                    <strong>Orçamento Sigiloso:</strong>
+                    <strong>Orï¿½amento Sigiloso:</strong>
                 </td>
                 <td class="background">
-                    <?= $oDadosPNCP->l20_orcsigiloso == 't' ? 'Sim' : 'Não' ?>
+                    <?= $oDadosPNCP->l20_orcsigiloso == 't' ? 'Sim' : 'Nï¿½o' ?>
                 </td>
                 <td>
                     <strong>Data Abertura das Propostas:</strong>

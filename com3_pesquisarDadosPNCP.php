@@ -13,10 +13,10 @@ $sqlPNCP = "SELECT     pc80_modalidadecontratacao,
                        db_usuarios.nome,
                        pc80_orcsigiloso,
                        case
-                           when pc80_criteriojulgamento = 1 then 'Menor preço'
+                           when pc80_criteriojulgamento = 1 then 'Menor preï¿½o'
                            when pc80_criteriojulgamento = 2 then 'Maior Desconto'
                            when pc80_criteriojulgamento = 5 then 'Maior Lance'
-                           when pc80_criteriojulgamento = 7 then 'Não se Aplica'
+                           when pc80_criteriojulgamento = 7 then 'Nï¿½o se Aplica'
                            end as pc80_criteriojulgamento,
                        pcproc.pc80_data,
                        l212_lei,
@@ -44,7 +44,7 @@ $pc80_data = implode('/', array_reverse(explode('-', $oDadosPNCP->pc80_data)));
 <html>
 
 <head>
-    <title>Contass Consultoria Ltda - P&aacute;gina Inicial</title>
+    <title>Delphos - P&aacute;gina Inicial</title>
     <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
     <meta http-equiv="Expires" CONTENT="0">
     <script language="JavaScript" type="text/javascript" src="scripts/scripts.js"></script>
@@ -69,10 +69,10 @@ $pc80_data = implode('/', array_reverse(explode('-', $oDadosPNCP->pc80_data)));
                                 <strong>Tipo de Instrumento Convocatorio:</strong>
                             </td>
                             <td class="background">
-                                <?php if ($oDadosPNCP->pc80_dispvalor == 't') echo 'Ato que autoriza a Contratação Direta'; ?>
+                                <?php if ($oDadosPNCP->pc80_dispvalor == 't') echo 'Ato que autoriza a Contrataï¿½ï¿½o Direta'; ?>
                             </td>
                             <td>
-                                <strong>Usuário:</strong>
+                                <strong>Usuï¿½rio:</strong>
                             </td>
                             <td class="background">
                                 <?= $oDadosPNCP->nome ?>
@@ -80,7 +80,7 @@ $pc80_data = implode('/', array_reverse(explode('-', $oDadosPNCP->pc80_data)));
                         </tr>
                         <tr>
                             <td>
-                                <strong>Modalidade de Contratação:</strong>
+                                <strong>Modalidade de Contrataï¿½ï¿½o:</strong>
                             </td>
                             <td class="background">
                                 <?= $modalidade ?>
@@ -89,18 +89,18 @@ $pc80_data = implode('/', array_reverse(explode('-', $oDadosPNCP->pc80_data)));
                                 <strong>Modo disputa:</strong>
                             </td>
                             <td class="background">
-                                <?= $oDadosPNCP->pc80_dispvalor == 't' ? 'Não se aplica' : ''; ?>
+                                <?= $oDadosPNCP->pc80_dispvalor == 't' ? 'Nï¿½o se aplica' : ''; ?>
                             </td>
                         </tr>
                         <tr>
                             <td>
-                                <strong>Data de lançamento:</strong>
+                                <strong>Data de lanï¿½amento:</strong>
                             </td>
                             <td class="background">
                                 <?= $oDadosPNCP->l213_dtlancamento ?>
                             </td>
                             <td>
-                                <strong>Critério de Julgamento:</strong>
+                                <strong>Critï¿½rio de Julgamento:</strong>
                             </td>
                             <td class="background">
                                 <?= $oDadosPNCP->pc80_criteriojulgamento ?>
@@ -108,11 +108,11 @@ $pc80_data = implode('/', array_reverse(explode('-', $oDadosPNCP->pc80_data)));
                         </tr>
                         <tr>
                             <td>
-                                <strong>Orçamento Sigiloso:</strong>
+                                <strong>Orï¿½amento Sigiloso:</strong>
                             </td>
                             <?php if ($oDadosPNCP->pc80_dispvalor == 't') { ?>
                                 <td class="background">
-                                    <?= $oDadosPNCP->pc80_orcsigiloso == 't' ? 'Sim' : 'Não' ?>
+                                    <?= $oDadosPNCP->pc80_orcsigiloso == 't' ? 'Sim' : 'Nï¿½o' ?>
                                 </td>
                             <?php } else { ?>
                                 <td class="background"></td>

@@ -43,7 +43,7 @@ $lRecarregaSistema = false;
 if (isset($atualiza)) {
 
   /**
-   * Salva as preferências do usuário
+   * Salva as preferï¿½ncias do usuï¿½rio
    */
   try{
 
@@ -67,9 +67,9 @@ if (isset($atualiza)) {
 
       $extensionData = \ECidade\V3\Extension\Data::restore('Desktop');
 
-      // extensao não descompactada, comando: bin/v3/extension/unpack desktop-package.tar.gz
+      // extensao nï¿½o descompactada, comando: bin/v3/extension/unpack desktop-package.tar.gz
       if (!$extensionData->exists()) {
-        throw new \Exception("Desktop não configurado.");
+        throw new \Exception("Desktop nï¿½o configurado.");
       }
 
       $extensionManager = new \ECidade\V3\Extension\Manager();
@@ -83,7 +83,7 @@ if (isset($atualiza)) {
         exit;
       }
 
-      throw new \Exception('Não foi possível alterar para a versão 3.\\nTente novamente mais tarde.');
+      throw new \Exception('Nï¿½o foi possï¿½vel alterar para a versï¿½o 3.\\nTente novamente mais tarde.');
     }
 
     $sMensagem = _M('configuracao.configuracao.preferenciaUsuario.sucesso');
@@ -116,7 +116,7 @@ if(!isset($trocaip) && !isset($atualiza)){
 ?>
 <html>
   <head>
-    <title>Contass TI LTDA</title>
+    <title>Delphos</title>
     <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
     <meta http-equiv="Expires" CONTENT="0">
     <script type="text/javascript" src="scripts/prototype.js"></script>
@@ -152,7 +152,7 @@ if(!isset($trocaip) && !isset($atualiza)){
  <form name="form1" action="" method="post" class="form-container" onSubmit="return salvandoPreferencias();">
      <div id="aba_banco">
         <fieldset>
-          <legend>Configuração de Banco de dados</legend>
+          <legend>Configuraï¿½ï¿½o de Banco de dados</legend>
            <table border="0" cellspacing="0" cellpadding="2">
              <tr>
                <td> <strong>Nome:</strong> </td>
@@ -227,17 +227,17 @@ if(!isset($trocaip) && !isset($atualiza)){
            $exibe_busca      = $oPreferencias->getExibeBusca();
            $skin             = $oPreferencias->getSkin();
 
-           $aOrdenação  = array('sequencial' => 'Ordenação padrão do sistema', 'alfabetico' => 'Alfabética');
-           $aBuscaMenus = array('0' => 'Não', '1' => 'Sim');
+           $aOrdenaï¿½ï¿½o  = array('sequencial' => 'Ordenaï¿½ï¿½o padrï¿½o do sistema', 'alfabetico' => 'Alfabï¿½tica');
+           $aBuscaMenus = array('0' => 'Nï¿½o', '1' => 'Sim');
 
            $oSkin  = new SkinService();
            $aSkins = $oSkin->getSkins();
          ?>
-         <legend>Preferências do Usuário</legend>
+         <legend>Preferï¿½ncias do Usuï¿½rio</legend>
          <table border="0"  class="form-container">
            <tr>
-             <td><strong>Ordenação dos Menus:</strong></td>
-             <td><?php db_select('preferencia_menu', $aOrdenação, true, 1); ?></td>
+             <td><strong>Ordenaï¿½ï¿½o dos Menus:</strong></td>
+             <td><?php db_select('preferencia_menu', $aOrdenaï¿½ï¿½o, true, 1); ?></td>
            </tr>
            <tr>
             <td><strong>Exibe Busca por Menus:</strong></td>
@@ -249,8 +249,8 @@ if(!isset($trocaip) && !isset($atualiza)){
            </tr>
 
           <tr>
-            <td><strong>Usar versão 3.0:</strong></td>
-            <td><?php db_select('versao3', array('0' => 'Não', '1' => 'Sim'), true, 1); ?></td>
+            <td><strong>Usar versï¿½o 3.0:</strong></td>
+            <td><?php db_select('versao3', array('0' => 'Nï¿½o', '1' => 'Sim'), true, 1); ?></td>
            </tr>
 
          </table>
@@ -262,7 +262,7 @@ if(!isset($trocaip) && !isset($atualiza)){
     </form>
     <script type="text/javascript">
       var oDBAbas = new DBAbas($('conteudo_abas'));
-      oDBAbas.adicionarAba('Preferências' , $('aba_preferencias'));
+      oDBAbas.adicionarAba('Preferï¿½ncias' , $('aba_preferencias'));
       oDBAbas.adicionarAba('Acesso ao sistema', $('aba_banco'));
 
       <?php if (isset($sMensagem)) : ?>

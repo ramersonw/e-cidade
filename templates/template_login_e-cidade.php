@@ -28,7 +28,7 @@
 <!DOCTYPE html>
 <html lang="pt-br">
   <head>
-    <title>Contass</title>
+    <title>Delphos</title>
     <meta charset="iso-8859-1">
     <meta http-equiv="Expires" CONTENT="0">
     <meta http-equiv="Cache-Control" content="no-cache, must-revalidate">
@@ -49,7 +49,7 @@
 
     <div class="container">
 
-      <a href="http://www.contassconsultoria.com.br/" title="Contass Consultoria LTDA." target="_blank"><img class="logo-ecidade" src="imagens/ecidade/login/logotipo_ecidade.png"/></a>
+      <a href="#" title="Delphos" target="_blank"><img class="logo-ecidade" src="imagens/ecidade/login/logotipo_ecidade.png"/></a>
 
       <form method="post" name="form1">
 
