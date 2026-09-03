@@ -72,6 +72,9 @@ docker exec -it e-cidade-bd-1 /bin/bash
 # Vá para a pasta tmp
 cd /tmp
 
+# Corrigir ownership da pasta do postgres
+chown -R postgres:postgres /var/lib/postgresql/
+
 # Resature o bkp zerado ou outro que tiver
 psql -U ecidade ecidade -f dump_e-cidade-zerada.sql
 
