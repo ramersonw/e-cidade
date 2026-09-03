@@ -35,15 +35,17 @@ Entra dentro do container para instalar modo desktop
 
 ```bash
 docker exec -it e-cidade-web-1 /bin/bash
-mkdir /var/www/html/extension/log/
+sudo mkdir /var/www/html/extension/log/
 cd /var/www/html/extension/data/extension
-cp Desktop.data.dist Desktop.data
+sudo cp Desktop.data.dist Desktop.data
 cd /var/www/html/extension/modification/data/modification/
-cp dbportal-v3-desktop.data.dist dbportal-v3-desktop.data
+sudo cp dbportal-v3-desktop.data.dist dbportal-v3-desktop.data
 cd /var/www/html/
-git config core.fileMode false
-bin/v3/extension/uninstall Desktop dbseller
-bin/v3/extension/install Desktop dbseller
+#git config core.fileMode false
+git config --global --add safe.directory /var/www/html
+sudo composer install
+sudo bin/v3/extension/uninstall Desktop dbseller
+sudo bin/v3/extension/install Desktop dbseller
 ```
 
 Faça o clone do banco de dados: 
