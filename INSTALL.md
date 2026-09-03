@@ -46,6 +46,8 @@ git config --global --add safe.directory /var/www/html
 sudo composer install
 sudo bin/v3/extension/uninstall Desktop dbseller
 sudo bin/v3/extension/install Desktop dbseller
+cd ..
+sudo chown -R www-data html/
 ```
 
 Faça o clone do banco de dados: 
