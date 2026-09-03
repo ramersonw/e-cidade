@@ -49,7 +49,7 @@
 
     <div class="container">
 
-      <a href="http://www.contassconsultoria.com.br/" title="Contass Consultoria LTDA." target="_blank"><img class="logo-ecidade" src="imagens/ecidade/login/logotipo_ecidade.png"/></a>
+      <a href="#" title="Delphos" target="_blank"><img class="logo-ecidade" src="imagens/ecidade/login/logotipo_ecidade.png"/></a>
 
       <form method="post" name="form1">
 

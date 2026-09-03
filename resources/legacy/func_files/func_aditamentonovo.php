@@ -74,7 +74,7 @@ if ($adanterior == 0) {
 <html>
 
 <head>
-    <title>Contass Inform&aacute;tica Ltda - P&aacute;gina Inicial</title>
+    <title>Delphos - P&aacute;gina Inicial</title>
     <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
     <meta http-equiv="Expires" CONTENT="0">
     <?
