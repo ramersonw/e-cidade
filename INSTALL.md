@@ -44,6 +44,10 @@ cd /var/www/html/
 #git config core.fileMode false
 git config --global --add safe.directory /var/www/html
 sudo composer install
+cp .env.example .env
+php artisan key:generate
+php artisan config:clear
+php artisan cache:clear
 sudo bin/v3/extension/uninstall Desktop dbseller
 sudo bin/v3/extension/install Desktop dbseller
 cd ..
