@@ -10,79 +10,128 @@ instalação siga os passos do [guia de atualização](UPGRADE.md).
 ### Docker
 #### Obs.: Tenha o docker instalado na sua maquina. [Link Instalar Docker](https://docs.docker.com/get-started/get-docker/)
 
-**Pré-requisitos:** 
+**Pré-requisitos:**
 
-- Tenha conhecimento prévio de Docker
-- Já tenha ele instalado na maquina.
-- Usaremos S.O Baseado em Linux para este exemplo;
-- Tenha uma chave ssh no Github ou baixe o projeto pelo https
+- Linux com Docker e o plugin `docker compose`;
+- `git` e `bunzip2` (ou `bzip2`);
+- Executar como root ou com um usuário do grupo `docker`.
 
-Faça o clone do projeto: [https://github.com/e-cidade/e-cidade](https://github.com/e-cidade/e-cidade)
+A instalação sobe três containers:
+
+| Serviço | Descrição | Porta padrão |
+|---|---|---|
+| `web` | Apache + PHP-FPM 7.4 com o e-Cidade | `8282` (`APP_PORT`) |
+| `bd` | PostgreSQL 12 (LATIN1 / pt_BR.ISO-8859-1) | `5432` (`DB_PORTA`) |
+| `pgadmin` | pgAdmin 4 com o servidor "e-Cidade" já cadastrado | `8283` (`PGADMIN_PORT`) |
+
+#### Instalação automática (recomendado)
+
+O script `instalar-ecidade.sh`, na raiz do projeto, faz todo o processo: clona o
+projeto, sobe os containers, restaura a base zerada
+([base-dados-ecidade](https://github.com/e-cidade/base-dados-ecidade)) e configura o
+modo Desktop.
 
 ```bash
-git clone git@github.com:e-cidade/e-cidade.git
+# Baixe só o script (ou use o que está no projeto já clonado)
+curl -fsSLO https://raw.githubusercontent.com/ramersonw/e-cidade/main/instalar-ecidade.sh
+
+# Instalação nova em /projetos/e-cidade
+sh instalar-ecidade.sh /projetos/e-cidade
 ```
 
-Entre na pasta do projeto e configure o .env e execute o docker compose
+Ao final, o script mostra os endereços de acesso e confere se o PHP consegue gravar nas
+pastas do sistema e no log. Use `sh instalar-ecidade.sh --help` para ver todas as
+opções (outro repositório ou branch, dump local, sem backup etc.).
+
+**Corrigir ou atualizar uma instalação existente:** execute o script apontando para a
+pasta da instalação. Ele detecta a instalação e faz backup do banco em
+`<pasta>-backups/` (`pg_dump`, ou cópia dos arquivos se o banco estiver parado). Depois
+atualiza os arquivos Docker e recria os containers **preservando o banco de dados**.
 
 ```bash
+sh instalar-ecidade.sh /projetos/e-cidade
+```
+
+#### Várias instalações no mesmo computador
+
+Cada pasta é uma instalação independente: containers, imagens, rede e volumes recebem o
+nome da pasta como prefixo (ex.: `cliente2-web-1`, `cliente2-bd-1`,
+`cliente2-pgadmin-1`). Informe portas diferentes para cada uma:
+
+```bash
+APP_PORT=8382 DB_PORTA=5433 PGADMIN_PORT=8383 sh instalar-ecidade.sh /projetos/cliente2
+APP_PORT=8482 DB_PORTA=5434 PGADMIN_PORT=8483 sh instalar-ecidade.sh /projetos/cliente3
+```
+
+As portas ficam gravadas no `.env` da instalação. O script recusa portas já usadas por
+outra instalação. **O nome da pasta (último nível) deve ser único**; para repetir um
+nome, defina `COMPOSE_PROJECT_NAME=nome_unico` no `.env`.
+
+#### Instalação manual
+
+Equivale ao que o script faz. Não é necessário `sudo` nem `chown` manual: ao iniciar, o
+container `web` ajusta sozinho as permissões e executa o `composer install`.
+
+```bash
+# 1. Projeto e configuração
+git clone https://github.com/ramersonw/e-cidade.git e-cidade
 cd e-cidade
 cp .env.example .env
-docker compose up -d 
+sed -i 's|^DB_HOST=.*|DB_HOST=bd|' .env      # host do banco = nome do serviço
+
+# 2. Containers (aguarde o "web" ficar "healthy" - a primeira vez demora)
+docker compose up -d --build
+docker compose ps
+
+# 3. Base de dados zerada
+git clone --depth 1 https://github.com/e-cidade/base-dados-ecidade.git ../base-dados-ecidade
+bunzip2 -c ../base-dados-ecidade/dump_e-cidade-zerada.sql.bz2 \
+  | docker compose exec -T bd psql -U ecidade -d ecidade -q
+
+# 4. Aplicação e modo Desktop (sempre como www-data)
+docker compose exec -u www-data web php artisan key:generate --force
+docker compose exec -u www-data web sh -c '
+  cp -n extension/data/extension/Desktop.data.dist extension/data/extension/Desktop.data
+  cp -n extension/modification/data/modification/dbportal-v3-desktop.data.dist \
+        extension/modification/data/modification/dbportal-v3-desktop.data
+  php bin/v3/extension/uninstall Desktop dbseller
+  php bin/v3/extension/install Desktop dbseller'
 ```
 
-Entra dentro do container para instalar modo desktop
+> O `uninstall` antes do `install` é necessário: o `Desktop.data.dist` já marca o
+> usuário dbseller como instalado e, sem ele, o `install` recusa com "Extensão já
+> instalada" sem aplicar as modificações do modo Desktop.
 
-```bash
-docker exec -it e-cidade-web-1 /bin/bash
-sudo mkdir /var/www/html/extension/log/
-cd /var/www/html/extension/data/extension
-sudo cp Desktop.data.dist Desktop.data
-cd /var/www/html/extension/modification/data/modification/
-sudo cp dbportal-v3-desktop.data.dist dbportal-v3-desktop.data
-cd /var/www/html/
-#git config core.fileMode false
-git config --global --add safe.directory /var/www/html
-sudo composer install
-sudo php artisan key:generate
-sudo php artisan config:clear
-sudo php artisan cache:clear
-sudo bin/v3/extension/uninstall Desktop dbseller
-sudo bin/v3/extension/install Desktop dbseller
-cd ..
-sudo chown -R www-data html/
-```
+> As mensagens `Arquivo não existe: '...php'` na instalação do Desktop referem-se a
+> telas cadastradas na base que não existem no código e não impedem o funcionamento.
 
-Faça o clone do banco de dados: 
+#### Acesso
 
-```bash
+| | Endereço | Usuário / senha |
+|---|---|---|
+| e-Cidade | `http://IP:8282/` | `dbseller` / `dbseller` |
+| pgAdmin | `http://IP:8283/` | `admin@ecidade.com.br` / `admin` (altere com `PGADMIN_EMAIL` / `PGADMIN_PASSWORD`) |
+| PostgreSQL | `IP:5432` | `ecidade` / `ecidade` ou `postgres` / `postgres` |
 
-# Clone o projeto
-git clone git@github.com:e-cidade/base-dados-ecidade.git 
+No pgAdmin, o servidor "e-Cidade" já está cadastrado; na primeira conexão informe a
+senha `ecidade`.
 
-# Entra na pasta
-cd base-dados-ecidade
+#### Permissões, logs e dicas
 
-# Descompacta o arquivo 
-bunzip2 dump_e-cidade-zerada.sql.bz2
-
-# Copia para o container
-docker cp dump_e-cidade-zerada.sql e-cidade-bd-1:/tmp/
-
-# Entra no container do banco de dados
-docker exec -it e-cidade-bd-1 /bin/bash
-
-# Vá para a pasta tmp
-cd /tmp
-
-# Corrigir ownership da pasta do postgres
-chown -R postgres:postgres /var/lib/postgresql/
-
-# Resature o bkp zerado ou outro que tiver
-psql -U ecidade ecidade -f dump_e-cidade-zerada.sql
-
-```
-
+- O Apache e o PHP rodam como `www-data` com o **mesmo UID/GID do dono da pasta do
+  projeto no host**: os arquivos continuam editáveis pelo seu usuário e graváveis pelo
+  sistema. Se o dono for root, os arquivos passam para o `www-data` (uid 33). O UID/GID
+  pode ser forçado com `WWW_UID` e `WWW_GID` no `.env`.
+- Os dados do PostgreSQL ficam em `docker/bd/pgsql`. **Não execute `chown -R` na pasta do
+  projeto**, nem dentro do container: as permissões são corrigidas a cada inicialização
+  do container `web` (`docker compose restart web`).
+- Execute comandos da aplicação como `www-data`, para não criar arquivos de root:
+  `docker compose exec -u www-data web php artisan cache:clear`.
+- Logs:
+  - `docker compose logs -f web`: Apache, PHP-FPM e erros do PHP;
+  - `docker compose exec web tail -f /var/log/php/php_errors.log`: log do PHP;
+  - `storage/logs/laravel.log` e `extension/log/`: logs da aplicação.
+- Banco via terminal: `docker compose exec bd psql -U ecidade ecidade`.
 
 ## Instalação em servidor web
 

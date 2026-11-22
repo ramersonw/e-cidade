@@ -1,0 +1,14 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "e-Cidade",
+      "Group": "Servers",
+      "Host": "bd",
+      "Port": 5432,
+      "MaintenanceDB": "ecidade",
+      "Username": "ecidade",
+      "SSLMode": "prefer",
+      "Comment": "Banco do e-Cidade (container bd). Senha padrao: ecidade"
+    }
+  }
+}

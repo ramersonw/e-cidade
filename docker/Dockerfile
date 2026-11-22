@@ -146,34 +146,54 @@ RUN apt-get install -y gcc g++ make nodejs
 # Exporta variável que permite a execução do composer como root sem emitir avisos
 #ENV PATH=$PATH:/root/composer/vendor/bin COMPOSER_ALLOW_SUPERUSER=1
 
+ENV COMPOSER_ALLOW_SUPERUSER=1
+
 # Adiciona vhosts
 ADD apache2/ecidade.conf /etc/apache2/sites-available/
 
-# Configura o php.ini com os parâmetros necessários para o e-cidade
-RUN ln -s /dev/stderr /var/log/php_errors.log && \
-  chown www-data. /var/log/php_errors.log && \
-  sed -i 's|^short_open_tag = .*|short_open_tag = On|g' /etc/php/7.4/fpm/php.ini && \
-  sed -i 's|^session.gc_maxlifetime = .*|session.gc_maxlifetime = 7200|g' /etc/php/7.4/fpm/php.ini && \
-  sed -i 's|^;date.timezone =.*|date.timezone = "America/Sao_Paulo"|g' /etc/php/7.4/fpm/php.ini && \
-  sed -i 's|^;error_log.*|error_log = /var/log/php_errors.log|g' /etc/php/7.4/fpm/php.ini && \
-  sed -i 's|^short_open_tag = .*|short_open_tag = On|g' /etc/php/7.4/cli/php.ini && \
-  sed -i 's|^session.gc_maxlifetime = .*|session.gc_maxlifetime = 7200|g' /etc/php/7.4/cli/php.ini && \
-  sed -i 's|^;date.timezone =.*|date.timezone = "America/Sao_Paulo"|g' /etc/php/7.4/cli/php.ini && \
-  sed -i 's|^;error_log.*|error_log = /var/log/php_errors.log|g' /etc/php/7.4/cli/php.ini
+# Configura o php.ini com os parâmetros necessários para o e-cidade.
+# O log de erros do PHP vai para um arquivo real em /var/log/php (gravável pelo
+# www-data). Antes ele era um link para /dev/stderr, que os workers do PHP-FPM
+# (usuário www-data) não têm permissão de abrir: o PHP não conseguia gravar logs.
+RUN mkdir -p /var/log/php && \
+  chown www-data:www-data /var/log/php && \
+  chmod 1777 /var/log/php && \
+  for SAPI in fpm cli; do \
+    sed -i 's|^short_open_tag = .*|short_open_tag = On|g' /etc/php/7.4/$SAPI/php.ini && \
+    sed -i 's|^session.gc_maxlifetime = .*|session.gc_maxlifetime = 7200|g' /etc/php/7.4/$SAPI/php.ini && \
+    sed -i 's|^;date.timezone =.*|date.timezone = "America/Sao_Paulo"|g' /etc/php/7.4/$SAPI/php.ini && \
+    sed -i 's|^;error_log.*|error_log = /var/log/php/php_errors.log|g' /etc/php/7.4/$SAPI/php.ini || exit 1; \
+  done
+
+# Ajusta o pool do PHP-FPM:
+#  - HOME gravável para o www-data (LibreOffice/ImageMagick gravam perfil/cache no HOME)
+#  - captura a saída dos workers e envia o log do master para o "docker logs"
+RUN sed -i 's|^;\?catch_workers_output = .*|catch_workers_output = yes|' /etc/php/7.4/fpm/pool.d/www.conf && \
+  sed -i 's|^;\?decorate_workers_output = .*|decorate_workers_output = no|' /etc/php/7.4/fpm/pool.d/www.conf && \
+  echo 'env[HOME] = /home/www-data' >> /etc/php/7.4/fpm/pool.d/www.conf && \
+  echo 'env[TMPDIR] = /tmp' >> /etc/php/7.4/fpm/pool.d/www.conf && \
+  sed -i 's|^;\?error_log = .*|error_log = /proc/self/fd/2|' /etc/php/7.4/fpm/php-fpm.conf
+
+# O www-data tinha como HOME /var/www (pertence ao root): cria um HOME próprio.
+RUN mkdir -p /home/www-data && \
+  usermod -d /home/www-data www-data && \
+  chown www-data:www-data /home/www-data
+
+# Git dentro do container: o código é um bind mount com dono do host
+RUN git config --system --add safe.directory '*'
 
 # Configura o Supervisor
 RUN mkdir -p /run/php/
 COPY supervisord/supervisord.conf /etc/supervisor/supervisord.conf
 COPY supervisord/conf.d/ /etc/supervisor/conf.d/
 
-#RUN useradd -d /home/contass -g www-data -G sudo,adm,cdrom,dip,plugdev -k /etc/skel -m -s /bin/bash contass
-RUN adduser --uid 1000 --disabled-password --gecos "" contass
-RUN usermod -g www-data contass
-#RUN  sed -i /etc/sudoers -re 's/^%sudo.*/%sudo all=(all:all) nopasswd: all/g' && \
-#     sed -i /etc/sudoers -re 's/^root.*/root all=(all:all) nopasswd: all/g' && \
-#     sed -i /etc/sudoers -re 's/^#includedir.*/## **removed the include directive** ##"/g' && \
-
-RUN echo 'contass ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers
+# Usuário mantido por compatibilidade com o procedimento antigo
+# ("docker exec ... sudo ..."). O container agora roda como root: o supervisord
+# inicia o Apache e o PHP-FPM, que trocam para o usuário www-data.
+RUN id contass >/dev/null 2>&1 || adduser --uid 1000 --disabled-password --gecos "" contass && \
+  usermod -g www-data contass && \
+  echo 'contass ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/contass && \
+  chmod 0440 /etc/sudoers.d/contass
 
 # Limpa os temporários
 RUN apt-get clean && \
@@ -187,14 +207,7 @@ EXPOSE 80
 
 WORKDIR /var/www/html
 
-#RUN chmod -R 775 /var/www/html/*
-
-USER contass
-
-RUN sudo mkdir /var/www/html/tmp/
-
-RUN sudo chmod -R 777 /var/www/html/tmp/
-#
-#RUN /var/www/html/composer install
+HEALTHCHECK --interval=15s --timeout=5s --start-period=30s --retries=40 \
+  CMD test -f /run/ecidade-pronto && curl -s -o /dev/null http://127.0.0.1/ || exit 1
 
 CMD ["/bin/bash", "/iniciar.sh"]

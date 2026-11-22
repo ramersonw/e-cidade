@@ -1,19 +1,26 @@
 FROM postgres:12.17-bullseye
 
-ENV DEBIAN_FRONTEND noninteractive
+ENV DEBIAN_FRONTEND=noninteractive
 
 RUN echo "Acquire::http {No-Cache=True;};" > /etc/apt/apt.conf.d/no-cache
 
-RUN apt-get update
+# O repositorio "bullseye-pgdg" foi descontinuado em apt.postgresql.org e faz o
+# "apt-get update" falhar. Nao precisamos dele (o PostgreSQL ja vem na imagem).
+# "--no-upgrade" evita atualizar pacotes ja presentes na imagem (locales, tzdata):
+# o Debian 11 saiu do LTS e alguns .deb de atualizacao nao existem mais nos espelhos.
+# Manter a glibc da imagem tambem preserva a ordenacao (collation) de bancos existentes.
+RUN rm -f /etc/apt/sources.list.d/pgdg.list && \
+  apt-get update && \
+  apt-get install -y --no-install-recommends --no-upgrade \
+    tzdata \
+    locales \
+    myspell-pt \
+    myspell-pt-br \
+    wbrazilian \
+    wportuguese && \
+  apt-get clean && rm -rf /var/lib/apt/lists/*
 
-RUN apt-get install -y --no-install-recommends tzdata \
-  locales \
-  myspell-pt \
-  myspell-pt-br \
-  wbrazilian \
-  wportuguese
-
-ENV TZ America/Sao_Paulo
+ENV TZ=America/Sao_Paulo
 RUN echo $TZ > /etc/timezone && \
   cp /usr/share/zoneinfo/${TZ} /etc/localtime && \
   dpkg-reconfigure -f noninteractive tzdata
@@ -24,10 +31,7 @@ RUN sed -i "s|copy \"iso14651_t1\"|copy \"iso14651_t1\"\nreorder-after <U00A0>\n
 
 RUN localedef -i pt_BR -c -f ISO-8859-1 -A /usr/share/locale/locale.alias pt_BR && \
   locale-gen pt_BR
-#  echo "locales locales/default_environment_locale select pt_BR.UTF-8" | debconf-set-selections && \
-#  dpkg-reconfigure --frontend noninteractive locales
 
-ENV LANG pt_BR.UTF-8
-ENV LANGUAGE pt_BR:pt
-ENV LC_ALL pt_BR.UTF-8
-
+ENV LANG=pt_BR.UTF-8
+ENV LANGUAGE=pt_BR:pt
+ENV LC_ALL=pt_BR.UTF-8
