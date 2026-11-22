@@ -27,7 +27,7 @@
 #    -h, --help              Mostra esta ajuda
 #
 #  Variáveis de ambiente opcionais: APP_PORT (8282), PGADMIN_PORT (8283),
-#  DB_PORTA (5432), PGADMIN_EMAIL, PGADMIN_PASSWORD - gravadas no .env.
+#  DB_PORTA (5432), PGADMIN_EMAIL, PGADMIN_PASSWORD, XDEBUG_MODE (off) - gravadas no .env.
 # =============================================================================
 set -eu
 
@@ -206,6 +206,8 @@ services:
           FIX_PERMISSIONS: '${FIX_PERMISSIONS:-true}'
           # auto | always | never
           COMPOSER_INSTALL: '${COMPOSER_INSTALL:-auto}'
+          # Xdebug: off (padrão) | debug | develop,debug | develop,coverage,debug
+          XDEBUG_MODE: '${XDEBUG_MODE:-off}'
         volumes:
             - './:/var/www/html'
         tmpfs:
@@ -558,6 +560,8 @@ cat > "$DIR/docker/scripts/iniciar.sh" <<'ECIDADE_ARQUIVO_EOF'
 #   FIX_PERMISSIONS      true (padrão) | false: ajusta dono/permissões no boot
 #   COMPOSER_INSTALL     auto (padrão: só se o vendor estiver ausente/desatualizado)
 #                        | always | never
+#   XDEBUG_MODE          off (padrão: extensão desativada) | modos do Xdebug 3,
+#                        ex.: debug | develop,debug | develop,coverage,debug
 # =============================================================================
 
 APP_DIR=/var/www/html
@@ -693,7 +697,27 @@ if [ -f composer.json ]; then
 fi
 
 # ---------------------------------------------------------------------------
-# 5. Apache
+# 5. Xdebug: desativado por padrão (deixa o PHP mais lento e gera stack
+#    traces enormes no log). Ative com XDEBUG_MODE no .env e reinicie o web.
+# ---------------------------------------------------------------------------
+XDEBUG_INI=/etc/php/7.4/mods-available/xdebug.ini
+XDEBUG_MODE="${XDEBUG_MODE:-off}"
+if [ -f "$XDEBUG_INI" ]; then
+    if [ "$XDEBUG_MODE" = "off" ] || [ -z "$XDEBUG_MODE" ]; then
+        phpdismod -v 7.4 xdebug
+        log "Xdebug desativado (para ativar: XDEBUG_MODE=debug no .env)"
+    else
+        sed -i "s|^xdebug.mode=.*|xdebug.mode=${XDEBUG_MODE}|" "$XDEBUG_INI"
+        # /dev/stdout não é acessível aos workers do PHP-FPM (www-data)
+        sed -i "s|^xdebug.log=.*|xdebug.log=/var/log/php/xdebug.log|" "$XDEBUG_INI"
+        touch /var/log/php/xdebug.log && chmod 0666 /var/log/php/xdebug.log
+        phpenmod -v 7.4 xdebug
+        log "Xdebug ativado (xdebug.mode=${XDEBUG_MODE})"
+    fi
+fi
+
+# ---------------------------------------------------------------------------
+# 6. Apache
 # ---------------------------------------------------------------------------
 a2ensite -q ecidade.conf >/dev/null
 
@@ -893,7 +917,7 @@ case "$(env_get DB_HOST)" in
     ""|e-cidade-bd-1|localhost|127.0.0.1) env_set DB_HOST bd; ok "DB_HOST=bd" ;;
 esac
 [ -n "$(env_get DB_PORT)" ] || env_set DB_PORT 5432
-for V in APP_PORT PGADMIN_PORT DB_PORTA PGADMIN_EMAIL PGADMIN_PASSWORD; do
+for V in APP_PORT PGADMIN_PORT DB_PORTA PGADMIN_EMAIL PGADMIN_PASSWORD XDEBUG_MODE; do
     eval "VAL=\${$V:-}"
     [ -n "$VAL" ] && env_set "$V" "$VAL"
 done

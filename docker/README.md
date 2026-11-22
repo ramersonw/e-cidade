@@ -104,6 +104,9 @@ definido no pool do FPM.
   PHP-FPM continuam trocando para `www-data`. O usuário `contass` foi mantido por
   compatibilidade.
 - O `supervisorctl` apontava para um socket diferente do supervisord; corrigido.
+- O Xdebug vem desativado: estava sempre ligado (`develop,coverage,debug`), deixando o
+  PHP mais lento e enchendo o log com stack traces. Para ligar, use `XDEBUG_MODE=debug`
+  no `.env` e rode `docker compose up -d web`.
 - O PostgreSQL recebe os parâmetros exigidos pelo INSTALL.md, que o Docker não aplicava:
   `standard_conforming_strings=off`, `bytea_output=escape`,
   `max_locks_per_transaction=256`, `escape_string_warning=off`.

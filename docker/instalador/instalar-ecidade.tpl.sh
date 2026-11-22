@@ -27,7 +27,7 @@
 #    -h, --help              Mostra esta ajuda
 #
 #  Variáveis de ambiente opcionais: APP_PORT (8282), PGADMIN_PORT (8283),
-#  DB_PORTA (5432), PGADMIN_EMAIL, PGADMIN_PASSWORD - gravadas no .env.
+#  DB_PORTA (5432), PGADMIN_EMAIL, PGADMIN_PASSWORD, XDEBUG_MODE (off) - gravadas no .env.
 # =============================================================================
 set -eu
 
@@ -206,7 +206,7 @@ case "$(env_get DB_HOST)" in
     ""|e-cidade-bd-1|localhost|127.0.0.1) env_set DB_HOST bd; ok "DB_HOST=bd" ;;
 esac
 [ -n "$(env_get DB_PORT)" ] || env_set DB_PORT 5432
-for V in APP_PORT PGADMIN_PORT DB_PORTA PGADMIN_EMAIL PGADMIN_PASSWORD; do
+for V in APP_PORT PGADMIN_PORT DB_PORTA PGADMIN_EMAIL PGADMIN_PASSWORD XDEBUG_MODE; do
     eval "VAL=\${$V:-}"
     [ -n "$VAL" ] && env_set "$V" "$VAL"
 done

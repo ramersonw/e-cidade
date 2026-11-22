@@ -24,6 +24,8 @@ services:
           FIX_PERMISSIONS: '${FIX_PERMISSIONS:-true}'
           # auto | always | never
           COMPOSER_INSTALL: '${COMPOSER_INSTALL:-auto}'
+          # Xdebug: off (padrão) | debug | develop,debug | develop,coverage,debug
+          XDEBUG_MODE: '${XDEBUG_MODE:-off}'
         volumes:
             - './:/var/www/html'
         tmpfs:

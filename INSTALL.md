@@ -132,6 +132,10 @@ senha `ecidade`.
   - `docker compose exec web tail -f /var/log/php/php_errors.log`: log do PHP;
   - `storage/logs/laravel.log` e `extension/log/`: logs da aplicação.
 - Banco via terminal: `docker compose exec bd psql -U ecidade ecidade`.
+- Xdebug: vem **desativado** (deixa o PHP mais lento e gera logs extensos). Para depurar,
+  adicione `XDEBUG_MODE=debug` (ou `develop,debug`) no `.env` e execute
+  `docker compose up -d web`; para desativar, remova a linha ou use `XDEBUG_MODE=off`.
+  O IDE deve escutar na porta 9003, com a idekey `PHPSTORM`.
 
 ## Instalação em servidor web
 

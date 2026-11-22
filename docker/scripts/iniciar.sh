@@ -18,6 +18,8 @@
 #   FIX_PERMISSIONS      true (padrão) | false: ajusta dono/permissões no boot
 #   COMPOSER_INSTALL     auto (padrão: só se o vendor estiver ausente/desatualizado)
 #                        | always | never
+#   XDEBUG_MODE          off (padrão: extensão desativada) | modos do Xdebug 3,
+#                        ex.: debug | develop,debug | develop,coverage,debug
 # =============================================================================
 
 APP_DIR=/var/www/html
@@ -153,7 +155,27 @@ if [ -f composer.json ]; then
 fi
 
 # ---------------------------------------------------------------------------
-# 5. Apache
+# 5. Xdebug: desativado por padrão (deixa o PHP mais lento e gera stack
+#    traces enormes no log). Ative com XDEBUG_MODE no .env e reinicie o web.
+# ---------------------------------------------------------------------------
+XDEBUG_INI=/etc/php/7.4/mods-available/xdebug.ini
+XDEBUG_MODE="${XDEBUG_MODE:-off}"
+if [ -f "$XDEBUG_INI" ]; then
+    if [ "$XDEBUG_MODE" = "off" ] || [ -z "$XDEBUG_MODE" ]; then
+        phpdismod -v 7.4 xdebug
+        log "Xdebug desativado (para ativar: XDEBUG_MODE=debug no .env)"
+    else
+        sed -i "s|^xdebug.mode=.*|xdebug.mode=${XDEBUG_MODE}|" "$XDEBUG_INI"
+        # /dev/stdout não é acessível aos workers do PHP-FPM (www-data)
+        sed -i "s|^xdebug.log=.*|xdebug.log=/var/log/php/xdebug.log|" "$XDEBUG_INI"
+        touch /var/log/php/xdebug.log && chmod 0666 /var/log/php/xdebug.log
+        phpenmod -v 7.4 xdebug
+        log "Xdebug ativado (xdebug.mode=${XDEBUG_MODE})"
+    fi
+fi
+
+# ---------------------------------------------------------------------------
+# 6. Apache
 # ---------------------------------------------------------------------------
 a2ensite -q ecidade.conf >/dev/null
 
