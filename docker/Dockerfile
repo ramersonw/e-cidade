@@ -148,6 +148,11 @@ RUN apt-get install -y gcc g++ make nodejs
 
 ENV COMPOSER_ALLOW_SUPERUSER=1
 
+# mod_headers: cache de arquivos estáticos no navegador (ver apache2/ecidade.conf)
+# ASSET_CACHE_MAXAGE: segundos que o navegador reaproveita .js/.css/imagens
+ENV ASSET_CACHE_MAXAGE=600
+RUN a2enmod headers
+
 # Adiciona vhosts
 ADD apache2/ecidade.conf /etc/apache2/sites-available/
 

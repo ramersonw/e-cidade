@@ -113,6 +113,13 @@ definido no pool do FPM.
 - `DB_HOST=e-cidade-bd-1` só funcionava se a pasta se chamasse `e-cidade`; agora é `bd`
   (nome do serviço).
 - Healthcheck no container web; no `bd`, o healthcheck usa o usuário `postgres`.
+- Cache de `.js`/`.css`/imagens **somente no navegador** (`Cache-Control: private,
+  max-age=600`). O e-Cidade entrega esses arquivos pelo PHP proibindo cache, e cada tela
+  pedia todos de novo, o que fica muito lento atrás de túnel/proxy (Cloudflare Tunnel).
+  `private` impede cache compartilhado no Cloudflare. Os arquivos alterados por usuário
+  pela extensão Desktop (`scripts.js`, `webseller.js`, `datagrid.widget.js`,
+  `DBModal`/`windowAux.widget.js`, `DBViewFeedback.classe.js`, `skins/*/estilos/estilos.css`)
+  ficam fora. Tempo ajustável com `ASSET_CACHE_MAXAGE` no `.env` (0 desativa).
 - O Apache nega o acesso a `/docker`, `/.git` e `/.env` (antes os dados do banco
   ficavam dentro da raiz do site).
 

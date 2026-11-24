@@ -26,6 +26,8 @@ services:
           COMPOSER_INSTALL: '${COMPOSER_INSTALL:-auto}'
           # Xdebug: off (padrão) | debug | develop,debug | develop,coverage,debug
           XDEBUG_MODE: '${XDEBUG_MODE:-off}'
+          # Segundos que o navegador reaproveita .js/.css/imagens (0 = sem cache)
+          ASSET_CACHE_MAXAGE: '${ASSET_CACHE_MAXAGE:-600}'
         volumes:
             - './:/var/www/html'
         tmpfs:

@@ -19,7 +19,7 @@
 #        --clone-completo    Clona o histórico completo (padrão: --depth 1)
 #        --repo-base URL     Repositório da base de dados zerada
 #                            (padrão: https://github.com/e-cidade/base-dados-ecidade.git)
-#        --dump ARQUIVO      Usa um dump local (.sql ou .sql.bz2) em vez de clonar a base
+#        --dump ARQUIVO      Usa um dump local (.sql, .sql.bz2 ou pg_dump -Fc) em vez da base zerada
 #        --sem-banco         Não restaura a base mesmo que o banco esteja vazio
 #        --sem-backup        Não faz backup do banco antes de corrigir
 #        --atualizar-codigo  Em instalação existente, executa "git pull" no projeto
@@ -208,6 +208,8 @@ services:
           COMPOSER_INSTALL: '${COMPOSER_INSTALL:-auto}'
           # Xdebug: off (padrão) | debug | develop,debug | develop,coverage,debug
           XDEBUG_MODE: '${XDEBUG_MODE:-off}'
+          # Segundos que o navegador reaproveita .js/.css/imagens (0 = sem cache)
+          ASSET_CACHE_MAXAGE: '${ASSET_CACHE_MAXAGE:-600}'
         volumes:
             - './:/var/www/html'
         tmpfs:
@@ -433,6 +435,11 @@ RUN apt-get install -y gcc g++ make nodejs
 #ENV PATH=$PATH:/root/composer/vendor/bin COMPOSER_ALLOW_SUPERUSER=1
 
 ENV COMPOSER_ALLOW_SUPERUSER=1
+
+# mod_headers: cache de arquivos estáticos no navegador (ver apache2/ecidade.conf)
+# ASSET_CACHE_MAXAGE: segundos que o navegador reaproveita .js/.css/imagens
+ENV ASSET_CACHE_MAXAGE=600
+RUN a2enmod headers
 
 # Adiciona vhosts
 ADD apache2/ecidade.conf /etc/apache2/sites-available/
@@ -801,6 +808,25 @@ cat > "$DIR/docker/apache2/ecidade.conf" <<'ECIDADE_ARQUIVO_EOF'
         Require all denied
     </FilesMatch>
 
+    # Cache de arquivos estáticos SOMENTE no navegador ("private").
+    # O e-Cidade entrega .js/.css/imagens pelo PHP (FrontController.php) com
+    # "Expires: 1981" e "Pragma: no-cache": cada arquivo era pedido de novo a cada
+    # tela, o que fica muito lento atrás de túnel/proxy (ex.: Cloudflare Tunnel).
+    # "private" impede o cache compartilhado (Cloudflare/proxies), porque alguns
+    # arquivos são alterados por usuário pela extensão Desktop; esses ficam fora.
+    # A condição usa THE_REQUEST (URL original), pois o .htaccess reescreve tudo
+    # para FrontController.php. Tempo ajustável por ASSET_CACHE_MAXAGE (segundos).
+    Define ASSET_REGEX "m#^[A-Z]+ /[^?\s]*\.(js|css|png|gif|jpe?g|svg|ico|woff2?|ttf|eot)([?\s])#i"
+    Define ASSET_POR_USUARIO "m#^[A-Z]+ [^?\s]*/(scripts/(scripts|webseller|datagrid\.widget)\.js|scripts/widgets/(DBModal|windowAux)\.widget\.js|DBViewFeedback\.classe\.js|skins/[^/]+/estilos/estilos\.css)([?\s])#i"
+    <If "%{THE_REQUEST} =~ ${ASSET_REGEX} && ! (%{THE_REQUEST} =~ ${ASSET_POR_USUARIO})">
+        Header always unset Expires
+        Header always unset Pragma
+        Header unset Expires
+        Header unset Pragma
+        Header always set Cache-Control "private, max-age=${ASSET_CACHE_MAXAGE}" "expr=%{REQUEST_STATUS} in {'200', '304'}"
+        Header unset Cache-Control "expr=%{REQUEST_STATUS} in {'200', '304'}"
+    </If>
+
 
 
 </VirtualHost>
@@ -1001,6 +1027,10 @@ else
     LOG_RESTORE="$BACKUP_DIR/restore-$DATA.log"
     mkdir -p "$BACKUP_DIR"
     info "Restaurando $(basename "$DUMP") no banco ecidade (pode levar vários minutos)"
+    # Formato custom do pg_dump (-Fc, cabeçalho "PGDMP"): pg_restore
+    if [ "$(head -c 5 "$DUMP")" = PGDMP ]; then
+        dc exec -T bd pg_restore -U ecidade -d ecidade < "$DUMP" > "$LOG_RESTORE" 2>&1 || true
+    else
     case "$DUMP" in
         *.bz2)
             [ -n "$BUNZIP" ] || erro "bunzip2/bzip2 não encontrado para descompactar $DUMP"
@@ -1008,6 +1038,7 @@ else
         *)
             dc exec -T bd psql -U ecidade -d ecidade -q < "$DUMP" > "$LOG_RESTORE" 2>&1 || true ;;
     esac
+    fi
     NUM_TABELAS="$(psql_bd -d ecidade -c "select count(*) from pg_tables where schemaname not in ('pg_catalog','information_schema')")"
     NUM_ERROS="$(grep -c 'ERRO\|ERROR' "$LOG_RESTORE" || true)"
     [ "$NUM_TABELAS" -gt 0 ] || erro "Restauração falhou (nenhuma tabela criada). Veja $LOG_RESTORE"

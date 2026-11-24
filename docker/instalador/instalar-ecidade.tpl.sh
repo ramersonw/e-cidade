@@ -19,7 +19,7 @@
 #        --clone-completo    Clona o histórico completo (padrão: --depth 1)
 #        --repo-base URL     Repositório da base de dados zerada
 #                            (padrão: https://github.com/e-cidade/base-dados-ecidade.git)
-#        --dump ARQUIVO      Usa um dump local (.sql ou .sql.bz2) em vez de clonar a base
+#        --dump ARQUIVO      Usa um dump local (.sql, .sql.bz2 ou pg_dump -Fc) em vez da base zerada
 #        --sem-banco         Não restaura a base mesmo que o banco esteja vazio
 #        --sem-backup        Não faz backup do banco antes de corrigir
 #        --atualizar-codigo  Em instalação existente, executa "git pull" no projeto
@@ -290,6 +290,10 @@ else
     LOG_RESTORE="$BACKUP_DIR/restore-$DATA.log"
     mkdir -p "$BACKUP_DIR"
     info "Restaurando $(basename "$DUMP") no banco ecidade (pode levar vários minutos)"
+    # Formato custom do pg_dump (-Fc, cabeçalho "PGDMP"): pg_restore
+    if [ "$(head -c 5 "$DUMP")" = PGDMP ]; then
+        dc exec -T bd pg_restore -U ecidade -d ecidade < "$DUMP" > "$LOG_RESTORE" 2>&1 || true
+    else
     case "$DUMP" in
         *.bz2)
             [ -n "$BUNZIP" ] || erro "bunzip2/bzip2 não encontrado para descompactar $DUMP"
@@ -297,6 +301,7 @@ else
         *)
             dc exec -T bd psql -U ecidade -d ecidade -q < "$DUMP" > "$LOG_RESTORE" 2>&1 || true ;;
     esac
+    fi
     NUM_TABELAS="$(psql_bd -d ecidade -c "select count(*) from pg_tables where schemaname not in ('pg_catalog','information_schema')")"
     NUM_ERROS="$(grep -c 'ERRO\|ERROR' "$LOG_RESTORE" || true)"
     [ "$NUM_TABELAS" -gt 0 ] || erro "Restauração falhou (nenhuma tabela criada). Veja $LOG_RESTORE"
